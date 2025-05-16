@@ -1,3 +1,4 @@
+exit
 console.log("ID: ", val.toString())
 const val = await contract.getUpkeepInfo(0);
 const contract = await ethers.getContractAt("AutomationRegistry", process.env.REGISTRY_ADDRESS)
