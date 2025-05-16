@@ -1,8 +1,9 @@
+// @ts-ignore
 import { ethers } from "hardhat";
 
 async function main() {
-  // Deploy AutomationRegistry with minimum funding of 0.1 ETH
-  const minimumFunding = ethers.parseEther("0.1");
+  // Deploy AutomationRegistry with minimum funding of 0.00001 ETH
+  const minimumFunding = ethers.parseEther("0.00001");
   
   console.log("Deploying AutomationRegistry...");
   const AutomationRegistry = await ethers.getContractFactory("AutomationRegistry");
