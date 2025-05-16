@@ -1,7 +1,7 @@
 module.exports = {
     apps: [{
       name: 'mycelium-automation',
-      script: 'dist/manager/index.js',  // Assuming TypeScript compiles to dist/
+      script: 'dist/src/manager/index.js',  // Assuming TypeScript compiles to dist/
       instances: 1,
       autorestart: true,
       watch: false,
