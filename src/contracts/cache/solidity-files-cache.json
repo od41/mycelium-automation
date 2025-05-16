@@ -1,0 +1,41 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "C:\\Users\\od41\\Documents\\code\\experiments\\mycelium-automation\\src\\contracts\\contracts\\AutomationRegistry.sol": {
+      "lastModificationDate": 1747380595239,
+      "contentHash": "18aa8b51aa530fbb3a29913f3d8f1f4d",
+      "sourceName": "src/contracts/contracts/AutomationRegistry.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AutomationRegistry"
+      ]
+    }
+  }
+}

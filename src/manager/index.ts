@@ -2,6 +2,8 @@ import winston from 'winston';
 import dotenv from 'dotenv';
 import { ethers } from 'ethers';
 import axios from 'axios';
+import { AutomationRegistry__factory } from '../../typechain-types/factories/AutomationRegistry__factory';
+import AutomationRegistry from '../../src/contracts/artifacts/src/contracts/contracts/AutomationRegistry.sol/AutomationRegistry.json';
 
 // Load environment variables
 dotenv.config();
@@ -26,14 +28,13 @@ const logger = winston.createLogger({
 
 // Load configuration
 const REGISTRY_ADDRESS = process.env.REGISTRY_ADDRESS!;
-const REGISTRY_ABI = require('./abi/RegistryABI.json');
 const RPC_URL = process.env.RPC_URL;
 const PRIVATE_KEY = process.env.PRIVATE_KEY!;
 
 // Initialize provider and wallet
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
-const registry = new ethers.Contract(REGISTRY_ADDRESS, REGISTRY_ABI, wallet);
+const registry = AutomationRegistry__factory.connect(REGISTRY_ADDRESS, wallet);
 
 async function scanUpkeeps() {
   const upkeepCount = await registry.upkeepCount();
@@ -47,32 +48,35 @@ async function scanUpkeeps() {
     
     // Check if it's time to execute this upkeep
     const currentTime = Math.floor(Date.now() / 1000);
-    if (currentTime >= upkeepInfo.lastExecuted.toNumber() + upkeepInfo.interval.toNumber()) {
+    if (currentTime >= Number(upkeepInfo.lastExecuted) + Number(upkeepInfo.interval)) {
       logger.info(`Executing upkeep ${i}`);
       
       try {
         // Load the target contract and check if upkeep is needed
         const targetContract = new ethers.Contract(
           upkeepInfo.targetContract,
-          ['function checkUpkeep(bytes) external view returns (bool, bytes)'],
+          AutomationRegistry.abi,
           provider
         );
         
-        const [needsExecution, performData] = await targetContract.checkUpkeep(upkeepInfo.checkData);
+        // Encode the upkeep ID for the check
+        const checkData = ethers.AbiCoder.defaultAbiCoder().encode(['uint256'], [i]);
+        const [needsExecution, performData] = await targetContract.checkUpkeep(checkData);
         
         if (needsExecution) {
-          // Execute the upkeep
-          const targetWithSigner = targetContract.connect(wallet);
-          const tx = await targetWithSigner.performUpkeep(performData, {
+          // Execute the upkeep through the registry
+          const tx = await registry.performUpkeep(i, performData, {
             gasLimit: 500000
           });
           
           const receipt = await tx.wait();
-          const gasUsed = receipt.gasUsed.toNumber();
-          
-          // Report the execution and collect payment
-          await registry.performUpkeep(i, gasUsed);
-          logger.info(`Successfully executed upkeep ${i}, gas used: ${gasUsed}`);
+          if (receipt) {
+            logger.info(`Successfully executed upkeep ${i}, tx hash: ${receipt.hash}`);
+          } else {
+            logger.warn(`Upkeep ${i} transaction completed but no receipt available`);
+          }
+        } else {
+          logger.info(`Upkeep ${i} does not need execution`);
         }
       } catch (error) {
         logger.error(`Error executing upkeep ${i}:`, error);
